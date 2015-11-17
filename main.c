@@ -11,41 +11,34 @@
 
 #define PHOTOCELL_PIN PB4
 
-#define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient
+#define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
 // #define VIBRATE_PULSE 50
 
-/*
-void SetChipSelectHigh() {
+inline void SetChipSelectHigh() {
     PORTB |= (1<<LEDS_PIN_CHIPSELECT);
 }
 
-void SetChipSelectLow() {
+inline void SetChipSelectLow() {
     PORTB &= ~(1<<LEDS_PIN_CHIPSELECT);
 }
 
-void ToggleSerialClock() {
+inline void ToggleSerialClock() {
     PORTB |= (1<<LEDS_PIN_SERIALCLOCK);
     PORTB &= ~(1<<LEDS_PIN_SERIALCLOCK);
 }
-*/
 
-/*
-TODO: This is expensive!
-void SpiWriteBytes(int numBytes, uint8_t data[]) {
+void SpiWriteBytes(int numBytes, uint8_t data) {
     SetChipSelectLow();
-    for (int byte = 0; byte < numBytes; byte++) {
-        for (int bit = 7; bit >= 0; --bit) {
-            if ((data[byte] & (1 << bit))) {
-                PORTB |= (1 << LEDS_PIN_DATA);
-            } else {
-                PORTB &= ~(1 << LEDS_PIN_DATA);
-            }
-            ToggleSerialClock();
+    for (int bit = 7; bit >= 0; --bit) {
+        if ((data & (1 << bit))) {
+            PORTB |= (1 << LEDS_PIN_DATA);
+        } else {
+            PORTB &= ~(1 << LEDS_PIN_DATA);
         }
+        ToggleSerialClock();
     }
     SetChipSelectHigh();
 }
-*/
 
 ISR(WDT_vect) {
     // Nothing to do. Just wake up
