@@ -116,7 +116,7 @@ inline void init_interrupts() {
     // sleep_enable();
 }
 
-int main(void) {
+int __attribute__((OS_main)) main(void) {
     init_pins();
     init_interrupts();
 
