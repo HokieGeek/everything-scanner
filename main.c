@@ -55,7 +55,7 @@ int read_photocell() {
     return ADC;
 }
 
-void vibrate(int pulse) {
+inline void vibrate(int pulse) {
     OCR0A = pulse;
 }
 
@@ -81,7 +81,7 @@ void analyze_and_activate() {
     }
 }
 
-void init_pins() {
+inline void init_pins() {
     // Vibrator
     TCCR0B |= (1 << CS01); // clock/8 (See 11-9)
     TCCR0A |= (1 << WGM01) | (1 << WGM00); // Set for fast PWM with 0xFF Max (See 11-8)
@@ -99,8 +99,8 @@ void init_pins() {
     ADCSRA |= (1 << ADPS1) | (1 << ADPS0) | (1 << ADEN); // Enable ADC and set prescaler to clock/128
 }
 
-void init_interrupts() {
-    cli(); // JIC
+inline void init_interrupts() {
+    // cli(); // JIC
 
     // See table 8-2 on datasheet
     // WDTCR |= (1 << WDP2) | (1 << WDP1) | (1 << WDP0); // Sleep for ~2s
@@ -113,7 +113,7 @@ void init_interrupts() {
     sei();
 
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_enable();
+    // sleep_enable();
 }
 
 int main(void) {
