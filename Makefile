@@ -1,21 +1,18 @@
 prog=main
-chip=attiny13a
+chip=attiny13
 cpu_freq=
 programmer=usbtiny
 port=usb
 CC=avr-gcc
-CFLAGS=-funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -Wall -Wstrict-prototypes
-LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 
-#CFLAGS += -s
-#CFLAGS += -mcall-prologues
-#LDFLAGS += -Wl,--relax
-#LDFLAGS += -Wl,--gc-sections
-#CFLAGS += --param inline-call-cost=2
-#CFLAGS += --combine -fwhole-program
-#CFLAGS += -fno-inline-small-functions
-#CFLAGS += -ffunction-sections
-#CFLAGS += -fdata-sections
+CFLAGS  = -funsigned-char -funsigned-bitfields 
+CFLAGS += -fpack-struct -fshort-enums 
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -fwhole-program
+CFLAGS += -Wall -Wstrict-prototypes
+
+LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
+LDFLAGS += -Wl,--gc-sections
 
 DEPS = 
 OBJ = $(prog).o $(DEPS:.h=.o)
