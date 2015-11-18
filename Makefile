@@ -1,5 +1,5 @@
 prog=main
-chip=t13
+chip=attiny13a
 cpu_freq=
 programmer=usbtiny
 port=usb
