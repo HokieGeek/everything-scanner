@@ -47,6 +47,16 @@ upload: all
 	@echo "== Uploading to chip"
 	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U flash:w:$(prog).hex
 
+fuses:
+	@echo "== Setting fuses"
+	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U hfuse:w:0x1f:m -U lfuse:w:0x49:m
+	# Set for 4.8 Mhz clock and have watchdog timer on at all times
+
+fuses-default:
+	@echo "== Setting default fuses"
+	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U hfuse:w:0x1f:m -U lfuse:w:0x6a:m
+	# Set for 4.8 Mhz clock and have watchdog timer on at all times
+
 clean:
 	rm -rf *.{eep,elf,hex,lss,lst,map,o,sym}
 
