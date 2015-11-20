@@ -44,9 +44,9 @@ inline void ToggleSerialClock() {
 void SpiSendByte(uint8_t data) {
     for (int bit =7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
-            PORTB |= (1 << LED_PIN_DATA);
+            PORTB |= (1 << LEDS_PIN_DATA);
         } else {
-            PORTB &= ~(1 << LED_PIN_DATA);
+            PORTB &= ~(1 << LEDS_PIN_DATA);
         }
         ToggleSerialClock();
     }
