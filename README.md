@@ -1,4 +1,4 @@
-# Olive's Fing-Longer
+# Olive's Fing-Longer [![Build Status](https://travis-ci.org/HokieGeek/olive-scanner.svg?branch=master)](https://travis-ci.org/HokieGeek/olive-scanner)
 
 Toy I am making my toddler so that when she touches an object the Fing-Longer vibrates and lights up. Should second as a flashlight, of sorts.
 
