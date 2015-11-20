@@ -14,6 +14,12 @@
 #define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
 // #define VIBRATE_PULSE 50
 
+// #define MCP23S08_ADDRESS 0b01000
+#define MCP23S08_OPCODE_WRITE 0b01000000
+#define MCP23S08_OPCODE_READ 0b01000001
+#define MCP23X08_REG_IODIR 0x00
+#define MCP23X08_REG_GPIO 0x09
+
 inline void SetChipSelectHigh() {
     PORTB |= (1<<LEDS_PIN_CHIPSELECT);
 }
@@ -27,8 +33,9 @@ inline void ToggleSerialClock() {
     PORTB &= ~(1<<LEDS_PIN_SERIALCLOCK);
 }
 
-void SpiWriteBytes(int numBytes, uint8_t data) {
+void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
     SetChipSelectLow();
+    // TODO: I need to be able to send 3 bytes
     for (int bit = 7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
             PORTB |= (1 << LEDS_PIN_DATA);
@@ -38,6 +45,10 @@ void SpiWriteBytes(int numBytes, uint8_t data) {
         ToggleSerialClock();
     }
     SetChipSelectHigh();
+}
+
+inline void MCP23S08_Write(uint8_t data) {
+    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, data);
 }
 
 ISR(WDT_vect) {
@@ -59,15 +70,11 @@ inline void vibrate(int pulse) {
     OCR0A = pulse;
 }
 
-void ledsOff() {
-    // TODO: this is an spi write operation
-    PORTB &= ~(1 << LEDS_PIN_DATA);
-}
-
 void animateLeds() {
     // TODO: randomly select and apply an animation
     // TODO: this is an spi write operation
-    PORTB |= (1 << LEDS_PIN_DATA);
+    PORTB |= (1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
+    MCP23S08_Write(0xFF); // Once the animation ends, turn them all on
 }
 
 void analyze_and_activate() {
@@ -75,9 +82,9 @@ void analyze_and_activate() {
         // TODO: vibrate(VIBRATE_PULSE);
         vibrate(255);
         animateLeds();
-    } else {
-        // TODO: Turn off all leds
-        ledsOff();
+    } else { // Turn off all LEDs
+        PORTB &= ~(1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
+        MCP23S08_Write(0x00);
     }
 }
 
@@ -93,6 +100,7 @@ inline void init_pins() {
     DDRB |= (1 << LEDS_PIN_DATA);
     // DDRB |= (1<<LEDS_PIN_CHIPSELECT)|(1<<LEDS_PIN_SERIALCLOCK)|(1<<LEDS_PIN_DATA);
     // SetChipSelectHigh();
+    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
