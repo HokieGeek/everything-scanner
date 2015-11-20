@@ -33,22 +33,29 @@ inline void ToggleSerialClock() {
     PORTB &= ~(1<<LEDS_PIN_SERIALCLOCK);
 }
 
-void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
-    SetChipSelectLow();
-    // TODO: I need to be able to send 3 bytes
-    for (int bit = 7; bit >= 0; --bit) {
+void SpiSendByte(uint8_t data) {
+    for (int bit =7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
-            PORTB |= (1 << LEDS_PIN_DATA);
+            PORTB |= (1 << LED_PIN_DATA);
         } else {
-            PORTB &= ~(1 << LEDS_PIN_DATA);
+            PORTB &= ~(1 << LED_PIN_DATA);
         }
         ToggleSerialClock();
     }
+}
+
+void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
+    SetChipSelectLow();
+    
+    SpiSendByte(opcode);
+    SpiSendByte(registerAddress);
+    SpiSendByte(data);
+    
     SetChipSelectHigh();
 }
 
-inline void MCP23S08_Write(uint8_t data) {
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, data);
+inline void MCP23S08_GpioWrite(uint8_t data) {
+    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_GPIO, data);
 }
 
 ISR(WDT_vect) {
@@ -74,7 +81,7 @@ void animateLeds() {
     // TODO: randomly select and apply an animation
     // TODO: this is an spi write operation
     PORTB |= (1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
-    MCP23S08_Write(0xFF); // Once the animation ends, turn them all on
+    MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on
 }
 
 void analyze_and_activate() {
@@ -84,7 +91,7 @@ void analyze_and_activate() {
         animateLeds();
     } else { // Turn off all LEDs
         PORTB &= ~(1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
-        MCP23S08_Write(0x00);
+        MCP23S08_GpioWrite(0x00);
     }
 }
 
