@@ -55,9 +55,12 @@ fuses:
 fuses-default:
 	@echo "== Setting default fuses"
 	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U hfuse:w:0x1f:m -U lfuse:w:0x6a:m
-	# Set for 4.8 Mhz clock and have watchdog timer on at all times
+
+size:
+	@echo "Size of binary: "
+	ls -l $(prog).hex | awk '{ print $5 }'
 
 clean:
 	rm -rf *.{eep,elf,hex,lss,lst,map,o,sym}
 
-.PHONY: all upload clean
+.PHONY: all upload clean fuses fuses-default size
