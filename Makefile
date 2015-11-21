@@ -1,8 +1,8 @@
 prog=main
 chip=attiny13
 cpu_freq=
-programmer=usbtiny
-port=usb
+programmer=buspirate
+port=/dev/buspirate
 CC=avr-gcc
 
 CFLAGS  = -funsigned-char -funsigned-bitfields 
@@ -14,6 +14,7 @@ CFLAGS += -Wall -Wstrict-prototypes
 LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
 
+# DEPS = mcp23x08.h
 DEPS = 
 OBJ = $(prog).o $(DEPS:.h=.o)
 

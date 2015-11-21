@@ -1,7 +1,7 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 
-// #include <mcp23x08.h>
+// #include "mcp23x08.h"
 // #include "led-patterns.h"
 
 #define VIBRATOR_PIN PB0
@@ -18,25 +18,25 @@
 #define MCP23X08_SLAVE_BASE_ADDRESS (1 << 6)
 #define MCP23X08_SLAVE_ADDRESS_A0 0
 #define MCP23X08_SLAVE_ADDRESS_A1 0
-// #define MCP23008_SLAVE_ADDRESS_A2 0
+#define MCP23008_SLAVE_ADDRESS_A2 0
 #define MCP23S08_ADDRESS (MCP23X08_SLAVE_BASE_ADDRESS|(MCP23X08_SLAVE_ADDRESS_A1 << 2)|(MCP23X08_SLAVE_ADDRESS_A0 << 1))
-// #define MCP23008_ADDRESS(MCP23X08_SLAVE_BASE_ADDRESS|(MCP23008_SLAVE_ADDRESS_A2 << 3)|(MCP23X08_SLAVE_ADDRESS_A1 << 2)|(MCP23X08_SLAVE_ADDRESS_A0 << 1))
+#define MCP23008_ADDRESS (MCP23X08_SLAVE_BASE_ADDRESS|(MCP23008_SLAVE_ADDRESS_A2 << 3)|(MCP23X08_SLAVE_ADDRESS_A1 << 2)|(MCP23X08_SLAVE_ADDRESS_A0 << 1))
 #define MCP23S08_OPCODE_WRITE MCP23S08_ADDRESS
 #define MCP23S08_OPCODE_READ (MCP23S08_ADDRESS|1)
-// #define MCP23008_OPCODE_WRITE MCP23008_ADDRESS
-// #define MCP23008_OPCODE_READ (MCP23008_ADDRESS|1)
+#define MCP23008_OPCODE_WRITE MCP23008_ADDRESS
+#define MCP23008_OPCODE_READ (MCP23008_ADDRESS|1)
 #define MCP23X08_REG_IODIR 0x00
 #define MCP23X08_REG_GPIO 0x09
 
-inline void SetChipSelectHigh() {
+inline void SetChipSelectHigh(void) {
     PORTB |= (1<<LEDS_PIN_CHIPSELECT);
 }
 
-inline void SetChipSelectLow() {
+inline void SetChipSelectLow(void) {
     PORTB &= ~(1<<LEDS_PIN_CHIPSELECT);
 }
 
-inline void ToggleSerialClock() {
+inline void ToggleSerialClock(void) {
     PORTB |= (1<<LEDS_PIN_SERIALCLOCK);
     PORTB &= ~(1<<LEDS_PIN_SERIALCLOCK);
 }
@@ -52,13 +52,18 @@ void SpiSendByte(uint8_t data) {
     }
 }
 
+void SpiMasterInit(void) {
+    DDRB |= (1<<LEDS_PIN_CHIPSELECT)|(1<<LEDS_PIN_SERIALCLOCK)|(1<<LEDS_PIN_DATA);
+    SetChipSelectHigh();
+}
+
 void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
     SetChipSelectLow();
-    
+
     SpiSendByte(opcode);
     SpiSendByte(registerAddress);
     SpiSendByte(data);
-    
+
     SetChipSelectHigh();
 }
 
@@ -70,14 +75,11 @@ inline void MCP23S08_IodirWrite(uint8_t dirs) {
     // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, dirs);
 }
 
-ISR(WDT_vect) {
-    // Nothing to do. Just wake up
-    ADCSRA |= (1 << ADEN);  // Enable ADC
-    analyze_and_activate();
-    ADCSRA &= ~(1 << ADEN);  // Disable ADC
+inline void MCP23X08_Init(void) {
+    SpiMasterInit();
 }
 
-int read_photocell() {
+int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
 
     while (ADCSRA & (1 << ADSC)); // Wait for conversion
@@ -89,24 +91,31 @@ inline void vibrate(int pulse) {
     OCR0A = pulse;
 }
 
-void animateLeds() {
+void animateLeds(void) {
     // TODO: randomly select and apply an animation
     // TODO: this is an spi write operation
-    PORTB |= (1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
+    // PORTB |= (1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
     MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on
 }
 
-void analyze_and_activate() {
+void analyze_and_activate(void) {
     if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         vibrate(VIBRATE_PULSE);
         animateLeds();
     } else { // Turn off all LEDs
-        PORTB &= ~(1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
+        // PORTB &= ~(1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
         MCP23S08_GpioWrite(0x00);
     }
 }
 
-inline void init_pins() {
+ISR(WDT_vect) {
+    // Nothing to do. Just wake up
+    ADCSRA |= (1 << ADEN);  // Enable ADC
+    analyze_and_activate();
+    ADCSRA &= ~(1 << ADEN);  // Disable ADC
+}
+
+inline void init_pins(void) {
     // Vibrator
     TCCR0B |= (1 << CS01); // clock/8 (See 11-9)
     TCCR0A |= (1 << WGM01) | (1 << WGM00); // Set for fast PWM with 0xFF Max (See 11-8)
@@ -115,18 +124,17 @@ inline void init_pins() {
     DDRB |= (1 << VIBRATOR_PIN);
 
     // The LEDS
-    DDRB |= (1 << LEDS_PIN_DATA);
-    // DDRB |= (1<<LEDS_PIN_CHIPSELECT)|(1<<LEDS_PIN_SERIALCLOCK)|(1<<LEDS_PIN_DATA);
-    // SetChipSelectHigh();
-    // MCP23S08_IodirWrite(0xFF); // Set all pins as output pins
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
+    // DDRB |= (1 << LEDS_PIN_DATA);
+    MCP23X08_Init();
+    MCP23S08_IodirWrite(0x00); // Set all pins as output pins
+    MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
     ADCSRA |= (1 << ADPS1) | (1 << ADPS0) | (1 << ADEN); // Enable ADC and set prescaler to clock/128
 }
 
-inline void init_interrupts() {
+inline void init_interrupts(void) {
     // cli(); // JIC
 
     // See table 8-2 on datasheet
