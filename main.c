@@ -12,7 +12,8 @@
 
 #define PHOTOCELL_PIN PB4
 
-#define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
+// #define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
+// #define PHOTOCELL_ACTIVATE_THRESHOLD 200 // TODO: make this a diff from ambient?
 #define VIBRATE_PULSE 255
 
 #define MCP23X08_SLAVE_BASE_ADDRESS (1 << 6)
@@ -27,6 +28,8 @@
 #define MCP23008_OPCODE_READ (MCP23008_ADDRESS|1)
 #define MCP23X08_REG_IODIR 0x00
 #define MCP23X08_REG_GPIO 0x09
+
+int currentAmbient = 800;
 
 inline void SetChipSelectHigh(void) {
     PORTB |= (1<<LEDS_PIN_CHIPSELECT);
@@ -68,11 +71,11 @@ void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
 }
 
 inline void MCP23S08_GpioWrite(uint8_t data) {
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_GPIO, data);
+    MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_GPIO, data);
 }
 
 inline void MCP23S08_IodirWrite(uint8_t dirs) {
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, dirs);
+    MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, dirs);
 }
 
 inline void MCP23X08_Init(void) {
@@ -93,23 +96,23 @@ inline void vibrate(int pulse) {
 
 void animateLeds(void) {
     // TODO: randomly select and apply an animation
-    // TODO: this is an spi write operation
-    // PORTB |= (1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
     MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on
 }
 
 void analyze_and_activate(void) {
-    if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
-        vibrate(VIBRATE_PULSE);
+    // TODO: If animation is running, do not allow
+
+    // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+    if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
+        // vibrate(VIBRATE_PULSE);
         animateLeds();
     } else { // Turn off all LEDs
-        // PORTB &= ~(1 << LEDS_PIN_DATA); // TODO: remove once the expander is working
+        // vibrate(0);
         MCP23S08_GpioWrite(0x00);
     }
 }
 
 ISR(WDT_vect) {
-    // Nothing to do. Just wake up
     ADCSRA |= (1 << ADEN);  // Enable ADC
     analyze_and_activate();
     ADCSRA &= ~(1 << ADEN);  // Disable ADC
@@ -127,7 +130,9 @@ inline void init_pins(void) {
     // DDRB |= (1 << LEDS_PIN_DATA);
     MCP23X08_Init();
     MCP23S08_IodirWrite(0x00); // Set all pins as output pins
-    MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
+    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
+    // MCP23S08_GpioWrite(0xFF);
+    MCP23S08_GpioWrite(0x00); // Start them off
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
@@ -149,12 +154,20 @@ inline void init_interrupts(void) {
     // sleep_enable();
 }
 
+// #include <util/delay.h>
 int __attribute__((OS_main)) main(void) {
     init_pins();
     init_interrupts();
 
+    ADCSRA &= ~(1 << ADEN);  // Disable ADC (to save power)
+
+    currentAmbient = read_photocell();
+
     for (;;) {
-        ADCSRA &= ~(1 << ADEN);  // Disable ADC (to save power)
         sleep_mode();
+        // MCP23S08_GpioWrite(0xFF); // Set all pins as output pins
+        // _delay_ms(1000);
+        // MCP23S08_GpioWrite(0x00); // Set all pins as output pins
+        // _delay_ms(1000);
     }
 }
