@@ -5,6 +5,7 @@ Toy I am making my toddler so that when she touches an object the "scanner" vibr
 ### Prototype
 
 ![Current](http://i.imgur.com/xCZDH0e.jpg)
+[Album](http://imgur.com/a/BFDh3)
 
 ## Design
 
