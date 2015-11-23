@@ -61,7 +61,7 @@ fuses-default:
 
 size:
 	@echo "Size of binary: "
-	@ls -lh $(prog).hex | awk '{ print $$5 }'
+	avr-size $(prog).hex
 
 clean:
 	rm -rf *.{eep,elf,hex,lss,lst,map,o,sym}
