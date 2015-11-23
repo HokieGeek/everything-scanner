@@ -32,7 +32,7 @@
 #define MCP23X08_REG_IODIR 0x00
 #define MCP23X08_REG_GPIO 0x09
 
-bool isAnimated = FALSE;
+int isAnimated = FALSE;
 int currentAmbient = 800;
 
 inline void SetChipSelectHigh(void) {
