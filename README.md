@@ -3,10 +3,15 @@
 Toy I am making my toddler so that when she touches an object the Fing-Longer vibrates and lights up. Should second as a flashlight, of sorts.
 
 ### Prototype
+
 ![Current](http://i.imgur.com/cuc8t8b.jpg)
 
-## Schematic
-TODO
+## Design
+
+![Schematics](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/
+schematics/olive-scanner.brd.png)
+![Board](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/
+schematics/olive-scanner.png)
 
 ## Parts list
 
