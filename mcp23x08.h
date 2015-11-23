@@ -9,7 +9,7 @@
 
 typedef struct {
     SpiDevice* spi;
-    int address;
+    uint8_t address;
 } mcp23x08Device;
 
 void MCP23S08_Send(mcp23x08Device* dev, uint8_t opcode, uint8_t registerAddress, uint8_t data);
