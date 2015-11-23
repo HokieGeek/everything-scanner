@@ -1,6 +1,6 @@
 # Olive's Scanner [![Build Status](https://travis-ci.org/HokieGeek/olive-scanner.svg?branch=master)](https://travis-ci.org/HokieGeek/olive-scanner)
 
-Toy I am making my toddler so that when she touches an object the Fing-Longer vibrates and lights up. Should second as a flashlight, of sorts.
+Toy I am making my toddler so that when she touches an object the "scanner" vibrates and lights up. Should second as a flashlight, of sorts.
 
 ### Prototype
 
@@ -8,8 +8,8 @@ Toy I am making my toddler so that when she touches an object the Fing-Longer vi
 
 ## Design
 
-![Schematics](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/olive-scanner.brd.png)
-![Board](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/olive-scanner.png)
+![Schematics](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/olive-scanner.png)
+![Board](https://raw.githubusercontent.com/HokieGeek/olive-scanner/master/schematics/olive-scanner.brd.png)
 
 ## Parts list
 
