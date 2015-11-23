@@ -4,6 +4,9 @@
 // #include "mcp23x08.h"
 // #include "led-patterns.h"
 
+#define FALSE 0
+#define TRUE !(FALSE)
+
 #define VIBRATOR_PIN PB0
 
 #define LEDS_PIN_DATA PB1
@@ -29,7 +32,7 @@
 #define MCP23X08_REG_IODIR 0x00
 #define MCP23X08_REG_GPIO 0x09
 
-bool isAnimated = false;
+bool isAnimated = FALSE;
 int currentAmbient = 800;
 
 inline void SetChipSelectHigh(void) {
@@ -96,10 +99,10 @@ inline void vibrate(int pulse) {
 }
 
 void animateLeds(void) {
-    isAnimated = true;
+    isAnimated = TRUE;
     // TODO: randomly select and apply an animation
     MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on?
-    isAnimated = false;
+    isAnimated = FALSE;
 }
 
 void analyze_and_activate(void) {
