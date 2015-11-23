@@ -86,6 +86,10 @@ inline void MCP23X08_Init(void) {
     SpiMasterInit();
 }
 
+inline void ledsWrite(uint8_t leds) {
+    MCP23S08_GpioWrite(/*TODO blah, */leds);
+}
+
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
 
@@ -101,7 +105,7 @@ inline void vibrate(int pulse) {
 void animateLeds(void) {
     isAnimated = TRUE;
     // TODO: randomly select and apply an animation
-    MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on?
+    ledsWrite(0xFF); // Once the animation ends, turn them all on?
     isAnimated = FALSE;
 }
 
@@ -115,7 +119,7 @@ void analyze_and_activate(void) {
             animateLeds();
         } else { // Turn off all LEDs
             // vibrate(0);
-            MCP23S08_GpioWrite(0x00);
+            ledsWrite(0x00);
         }
     }
 }
@@ -140,7 +144,7 @@ inline void init_pins(void) {
     MCP23S08_IodirWrite(0x00); // Set all pins as output pins
     // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, 0xFF); // Set all pins as output pins
     // MCP23S08_GpioWrite(0xFF);
-    MCP23S08_GpioWrite(0x00); // Start them off
+    ledsWrite(0x00); // Start them off
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
