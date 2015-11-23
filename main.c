@@ -29,6 +29,7 @@
 #define MCP23X08_REG_IODIR 0x00
 #define MCP23X08_REG_GPIO 0x09
 
+bool isAnimated = false;
 int currentAmbient = 800;
 
 inline void SetChipSelectHigh(void) {
@@ -95,20 +96,24 @@ inline void vibrate(int pulse) {
 }
 
 void animateLeds(void) {
+    isAnimated = true;
     // TODO: randomly select and apply an animation
-    MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on
+    MCP23S08_GpioWrite(0xFF); // Once the animation ends, turn them all on?
+    isAnimated = false;
 }
 
 void analyze_and_activate(void) {
     // TODO: If animation is running, do not allow
 
-    // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
-    if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
-        // vibrate(VIBRATE_PULSE);
-        animateLeds();
-    } else { // Turn off all LEDs
-        // vibrate(0);
-        MCP23S08_GpioWrite(0x00);
+    if (!isAnimated) {
+        // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+        if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
+            // vibrate(VIBRATE_PULSE);
+            animateLeds();
+        } else { // Turn off all LEDs
+            // vibrate(0);
+            MCP23S08_GpioWrite(0x00);
+        }
     }
 }
 
@@ -165,9 +170,5 @@ int __attribute__((OS_main)) main(void) {
 
     for (;;) {
         sleep_mode();
-        // MCP23S08_GpioWrite(0xFF); // Set all pins as output pins
-        // _delay_ms(1000);
-        // MCP23S08_GpioWrite(0x00); // Set all pins as output pins
-        // _delay_ms(1000);
     }
 }
