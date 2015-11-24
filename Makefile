@@ -10,20 +10,20 @@ CC=avr-gcc
 CFLAGS  = -funsigned-char -funsigned-bitfields 
 CFLAGS += -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -fwhole-program
+# CFLAGS += -fwhole-program
 CFLAGS += -Wall -Wstrict-prototypes
 
 LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
+# LDFLAGS += -Wl,--relax
 
-# DEPS = mcp23x08.h
-DEPS = 
+DEPS = spi.h mcp23x08.h
 OBJ = $(prog).o $(DEPS:.h=.o)
 
 all: $(prog).eep $(prog).lss $(prog).sym 
 
 %.o: %.c $(DEPS)
-	@echo "== Compiling object file: $@" && \
+	echo "== Compiling object file: $@" && \
 	$(CC) -c -mdeb -mmcu=$(chip) -I. -gdwarf-2 $(cpu_freq) -Os $(CFLAGS) -Wa,-adhlns=./$@.lst -std=gnu99 $< -o $@ || true
 
 $(prog).eep: $(prog).elf
@@ -43,12 +43,13 @@ $(prog).elf: $(prog).hex
 	avr-objcopy -O ihex -R .eeprom -R .fuse -R .lock -R .signature $@ $^
 
 $(prog).hex: $(OBJ)
-	@echo "== Creating hex" && \
+	echo "== Creating hex" && \
 	$(CC) -mmcu=$(chip) -I. -mdeb -gdwarf-2 $(cpu_freq) -Os $(CFLAGS) -Wa,-adhlns=$<  -std=gnu99 -MMD -MP -MF .dep/$(prog).elf.d $^ --output $(prog).elf $(LDFLAGS) -lm
 
 upload: all
 	@echo "== Uploading to chip"
-	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U flash:w:$(prog).hex
+	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U flash:w:$(prog).hex && \
+	git tag uploaded-$(shell date date +%Y%m%d_%H%M%S)
 
 fuses:
 	@echo "== Setting fuses"

@@ -1,57 +1,31 @@
 #include "mcp23x08.h"
 
-// TODO: ARGH
-#define LEDS_PIN_DATA PB1
-#define LEDS_PIN_SERIALCLOCK PB2
-#define LEDS_PIN_CHIPSELECT PB3
+#include <stdlib.h>
 
-inline void SetChipSelectHigh(void) {
-    PORTB |= (1<<LEDS_PIN_CHIPSELECT);
+void MCP23S08_Send(mcp23x08Device *const dev, uint8_t opcode, uint8_t registerAddress, uint8_t data) {
+    SetChipSelectLow(dev->spi);
+
+    SpiSendByte(dev->spi, opcode);
+    SpiSendByte(dev->spi, registerAddress);
+    SpiSendByte(dev->spi, data);
+
+    SetChipSelectHigh(dev->spi);
 }
 
-inline void SetChipSelectLow(void) {
-    PORTB &= ~(1<<LEDS_PIN_CHIPSELECT);
+void MCP23S08_GpioWrite(mcp23x08Device *const dev, uint8_t data) {
+    MCP23S08_Send(dev, dev->address, MCP23X08_REG_GPIO, data);
 }
 
-inline void ToggleSerialClock(void) {
-    PORTB |= (1<<LEDS_PIN_SERIALCLOCK);
-    PORTB &= ~(1<<LEDS_PIN_SERIALCLOCK);
+void MCP23S08_IodirWrite(mcp23x08Device *const dev, uint8_t dirs) {
+    MCP23S08_Send(dev, dev->address, MCP23X08_REG_IODIR, dirs);
 }
 
-void SpiSendByte(uint8_t data) {
-    for (int bit =7; bit >= 0; --bit) {
-        if ((data & (1 << bit))) {
-            PORTB |= (1 << LEDS_PIN_DATA);
-        } else {
-            PORTB &= ~(1 << LEDS_PIN_DATA);
-        }
-        ToggleSerialClock();
-    }
-}
+mcp23x08Device *const MCP23S08_Init(int chipSelect, int serialClock, int serialDataInput, int addressA0, int addressA1) {
 
-void SpiMasterInit(void) {
-    DDRB |= (1<<LEDS_PIN_CHIPSELECT)|(1<<LEDS_PIN_SERIALCLOCK)|(1<<LEDS_PIN_DATA);
-    SetChipSelectHigh();
-}
+    const int structSize = sizeof(mcp23x08Device);
+    mcp23x08Device *const dev = (mcp23x08Device*)malloc(structSize);
+    dev->spi = Init3WireSpiDevice(chipSelect, serialClock, serialDataInput);
+    dev->address = (MCP23X08_SLAVE_BASE_ADDRESS|(addressA1 << 2)|(addressA0 << 1));
 
-void MCP23S08_Send(uint8_t opcode, uint8_t registerAddress, uint8_t data) {
-    SetChipSelectLow();
-
-    SpiSendByte(opcode);
-    SpiSendByte(registerAddress);
-    SpiSendByte(data);
-
-    SetChipSelectHigh();
-}
-
-inline void MCP23S08_GpioWrite(uint8_t data) {
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_GPIO, data);
-}
-
-inline void MCP23S08_IodirWrite(uint8_t dirs) {
-    // MCP23S08_Send(MCP23S08_OPCODE_WRITE, MCP23X08_REG_IODIR, dirs);
-}
-
-void MCP23X08_Init(void) {
-    SpiMasterInit();
+    return dev;
 }
