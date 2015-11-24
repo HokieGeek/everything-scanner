@@ -2,7 +2,6 @@
 #include <avr/sleep.h>
 
 #include "mcp23x08.h"
-// #include "led-patterns.h"
 
 #define FALSE 0
 #define TRUE !(FALSE)
