@@ -21,10 +21,11 @@
 
 int isAnimated = FALSE;
 int currentAmbient = 800;
-mcp23x08Device* mcp23x08;
+// mcp23x08Device* mcp23x08;
+mcp23x08Device mcp23x08;
 
 inline void ledsWrite(uint8_t leds) {
-    MCP23S08_GpioWrite(mcp23x08, leds);
+    MCP23S08_GpioWrite(&mcp23x08, leds);
 }
 
 int read_photocell(void) {
@@ -74,9 +75,12 @@ inline void init_pins(void) {
     DDRB |= (1 << VIBRATOR_PIN);
 
     // The LEDS
-    mcp23x08 = MCP23S08_Init(LEDS_PIN_DATA, LEDS_PIN_SERIALCLOCK, LEDS_PIN_CHIPSELECT,
-                             MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1);
-    MCP23S08_IodirWrite(mcp23x08, 0x00); // Set all pins as output pins
+    // mcp23x08 = MCP23S08_Init(LEDS_PIN_DATA, LEDS_PIN_SERIALCLOCK, LEDS_PIN_CHIPSELECT,
+                             // MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1);
+    MCP23S08_Init(LEDS_PIN_DATA, LEDS_PIN_SERIALCLOCK, LEDS_PIN_CHIPSELECT,
+                  MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, 
+                  &mcp23x08);
+    MCP23S08_IodirWrite(&mcp23x08, 0x00); // Set all pins as output pins
     ledsWrite(0x00); // Start them off
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin

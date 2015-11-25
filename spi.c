@@ -38,6 +38,7 @@ void SpiWriteBytes(SpiDevice *const dev, int numBytes, uint8_t data[]) {
     SetChipSelectHigh(dev);
 }
 
+/*
 SpiDevice *const Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput) {
     const int sdsize = sizeof(SpiDevice);
 
@@ -51,6 +52,17 @@ SpiDevice *const Init3WireSpiDevice(int chipSelect, int serialClock, int serialD
     SetChipSelectHigh(dev);
 
     return dev;
+}
+*/
+
+void Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput, SpiDevice *dev) {
+    dev->chipSelect = chipSelect;
+    dev->serialClock = serialClock;
+    dev->serialDataInput = serialDataInput;
+
+    DDRB |= (1<<dev->chipSelect)|(1<<dev->serialClock)|(1<<dev->serialDataInput);
+
+    SetChipSelectHigh(dev);
 }
 
 // While this is pretty great, the attiny85's registers are 8-bit so 

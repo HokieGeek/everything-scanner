@@ -10,7 +10,8 @@
 #define MCP23X08_REG_GPIO 0x09
 
 typedef struct {
-    SpiDevice* spi;
+    // SpiDevice* spi;
+    SpiDevice spi;
     uint8_t address;
 } mcp23x08Device;
 
@@ -20,6 +21,6 @@ void MCP23S08_GpioWrite(mcp23x08Device *const dev, uint8_t data);
 
 void MCP23S08_IodirWrite(mcp23x08Device *const dev, uint8_t dirs);
 
-mcp23x08Device *const MCP23S08_Init(int chipSelect, int serialClock, int serialDataInput, int addressA0, int addressA1);
+void MCP23S08_Init(int chipSelect, int serialClock, int serialDataInput, int addressA0, int addressA1, mcp23x08Device *dev);
 
 #endif // __MCP23X08__H__
