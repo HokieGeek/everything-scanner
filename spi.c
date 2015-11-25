@@ -4,34 +4,33 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 
 void SetChipSelectHigh(SpiDevice *const dev) {
-    // PORTB |= (1<<dev->chipSelect);
-    PORTB |= (1<<PB3);
+    PORTB |= (1<<dev->chipSelect);
+    // PORTB |= (1<<PB3);
 }
 
 void SetChipSelectLow(SpiDevice *const dev) {
-    // PORTB &= ~(1<<dev->chipSelect);
-    PORTB &= ~(1<<PB3);
+    PORTB &= ~(1<<dev->chipSelect);
+    // PORTB &= ~(1<<PB3);
 }
 
 void ToggleSerialClock(SpiDevice *const dev) {
-    // PORTB |= (1<<dev->serialClock);
-    // PORTB &= ~(1<<dev->serialClock);
-    PORTB |= (1<<PB2);
-    PORTB &= ~(1<<PB2);
+    PORTB |= (1<<dev->serialClock);
+    PORTB &= ~(1<<dev->serialClock);
+    // PORTB |= (1<<PB2);
+    // PORTB &= ~(1<<PB2);
 
 }
 
 void SpiSendByte(SpiDevice *const dev, uint8_t data) {
     for (int bit =7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
-            // PORTB |= (1 << dev->serialDataInput);
-            PORTB |= (1 << PB1);
+            PORTB |= (1 << dev->serialDataInput);
+            // PORTB |= (1 << PB1);
         } else {
-            // PORTB &= ~(1 << dev->serialDataInput);
-            PORTB &= ~(1 << PB1);
+            PORTB &= ~(1 << dev->serialDataInput);
+            // PORTB &= ~(1 << PB1);
         }
         ToggleSerialClock(dev);
     }
@@ -44,23 +43,6 @@ void SpiWriteBytes(SpiDevice *const dev, int numBytes, uint8_t data[]) {
     }
     SetChipSelectHigh(dev);
 }
-
-/*
-SpiDevice *const Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput) {
-    const int sdsize = sizeof(SpiDevice);
-
-    SpiDevice *const dev = (SpiDevice*)malloc(sdsize);
-    dev->chipSelect = chipSelect;
-    dev->serialClock = serialClock;
-    dev->serialDataInput = serialDataInput;
-
-    DDRB |= (1<<dev->chipSelect)|(1<<dev->serialClock)|(1<<dev->serialDataInput);
-
-    SetChipSelectHigh(dev);
-
-    return dev;
-}
-*/
 
 void Init3WireSpiDevice(SpiDevice *dev) {
     DDRB |= (1<<dev->chipSelect)|(1<<dev->serialClock)|(1<<dev->serialDataInput);
