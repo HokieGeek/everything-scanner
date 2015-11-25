@@ -21,10 +21,10 @@
 
 int isAnimated = FALSE;
 int currentAmbient = 800;
-mcp23x08Device mcp23x08;
+mcp23s08Device mcp23s08;
 
 inline void ledsWrite(uint8_t leds) {
-    MCP23S08_GpioWrite(&mcp23x08, leds);
+    MCP23S08_GpioWrite(&mcp23s08, leds);
 }
 
 int read_photocell(void) {
@@ -65,6 +65,12 @@ ISR(WDT_vect) {
     ADCSRA &= ~(1 << ADEN);  // Disable ADC
 }
 
+void init_mcp23s08() {
+    mcp23s08.spi.chipSelect = LEDS_PIN_CHIPSELECT;
+    mcp23s08.spi.serialClock = LEDS_PIN_SERIALCLOCK;
+    mcp23s08.spi.serialDataInput = LEDS_PIN_DATA;
+}
+
 inline void init_pins(void) {
     // Vibrator
     TCCR0B |= (1 << CS01); // clock/8 (See 11-9)
@@ -74,9 +80,7 @@ inline void init_pins(void) {
     DDRB |= (1 << VIBRATOR_PIN);
 
     // The LEDS
-    MCP23S08_Init(LEDS_PIN_DATA, LEDS_PIN_SERIALCLOCK, LEDS_PIN_CHIPSELECT,
-                  MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, 
-                  &mcp23x08);
+    MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
     MCP23S08_IodirWrite(&mcp23x08, 0x00); // Set all pins as output pins
     // ledsWrite(0x00); // Start them off
     ledsWrite(0xFF);
