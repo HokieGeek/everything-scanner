@@ -54,14 +54,6 @@ void Init3WireSpiDevice(SpiDevice *dev) {
 // I can't use it to set the MCP41010's 16-bit registers. Still need to do bit-banging.
 
 /*
-void SetChipSelectHigh2(SpiDevice2 *const dev) {
-    PORTB |= (1<<dev->chipSelect);
-}
-
-void SetChipSelectLow2(SpiDevice2 *const dev) {
-    PORTB &= ~(1<<dev->chipSelect);
-}
-
 SpiDevice2 *const InitSpiMaster(int chipSelect) {
     const int sdsize = sizeof(SpiDevice2);
     SpiDevice2 *const dev = (SpiDevice2*)malloc(sdsize);
@@ -94,18 +86,6 @@ uint8_t SpiSend(SpiDevice2 *const dev, uint8_t data) {
     uint8_t ret = spiSend(data);
 
     SetChipSelectHigh2(dev);
-
-    return ret;
-}
-
-uint8_t SpiSend16(SpiDevice2 *const dev, uint8_t byte1, uint8_t byte2) {
-    SetChipSelectLow2(dev);
-
-    uint8_t ret = spiSend(byte1);
-    ret = spiSend(byte2);
-
-    SetChipSelectHigh2(dev);
-    _delay_ms(500);
 
     return ret;
 }
