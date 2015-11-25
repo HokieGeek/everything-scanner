@@ -10,8 +10,7 @@ CC=avr-gcc
 CFLAGS  = -funsigned-char -funsigned-bitfields 
 CFLAGS += -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -flto
-CFLAGS += -fwhole-program
+# CFLAGS += -flto -fwhole-program
 CFLAGS += -Wall -Wstrict-prototypes
 
 LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
