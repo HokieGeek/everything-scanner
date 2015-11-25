@@ -1,5 +1,6 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <util/delay.h>
 
 #include "mcp23x08.h"
 
@@ -27,6 +28,26 @@ inline void ledsWrite(uint8_t leds) {
     MCP23S08_GpioWrite(&mcp23s08, leds);
 }
 
+inline void ledPattern_Alternating() {
+    for (int i = 0; i < 5; i++) { // Repeat this 5 times
+    // TODO: while (isAnimated) {
+        ledsWrite(0b10101010);
+        _delay_ms(500);
+        ledsWrite(0b11010101);
+        _delay_ms(500);
+    }
+}
+
+inline void ledPattern_KITT() {
+    // TODO
+    ledsWrite(0xFF);
+    _delay_ms(500);
+    ledsWrite(0x00);
+}
+
+const int numLedPatterns = 2;
+void (*ledPatterns[numLedPatterns]) = { ledPattern_Alternating, ledPattern_KITT }
+
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
 
@@ -42,8 +63,9 @@ inline void vibrate(int pulse) {
 void animateLeds(void) {
     isAnimated = TRUE;
     // TODO: randomly select and apply an animation
+    // (*ledPatterns[RAND_NUM from 0 to numLedPatterns-1])()
     ledsWrite(0xFF); // Once the animation ends, turn them all on?
-    isAnimated = FALSE;
+    // isAnimated = FALSE;
 }
 
 void analyze_and_activate(void) {
@@ -53,6 +75,7 @@ void analyze_and_activate(void) {
             // vibrate(VIBRATE_PULSE);
             animateLeds();
         } else { // Turn off all LEDs
+            // isAnimated = FALSE;
             // vibrate(0);
             // ledsWrite(0x00);
         }
