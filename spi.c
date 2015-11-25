@@ -62,11 +62,7 @@ SpiDevice *const Init3WireSpiDevice(int chipSelect, int serialClock, int serialD
 }
 */
 
-void Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput, SpiDevice *dev) {
-    dev->chipSelect = chipSelect;
-    dev->serialClock = serialClock;
-    dev->serialDataInput = serialDataInput;
-
+void Init3WireSpiDevice(SpiDevice *dev) {
     DDRB |= (1<<dev->chipSelect)|(1<<dev->serialClock)|(1<<dev->serialDataInput);
 
     SetChipSelectHigh(dev);
