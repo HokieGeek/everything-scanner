@@ -49,8 +49,10 @@ $(prog).hex: $(OBJ)
 
 upload: all
 	@echo "== Uploading to chip"
-	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U flash:w:$(prog).hex && \
-	git tag uploaded-$(shell date date +%Y%m%d_%H%M%S)
+	sudo avrdude -P $(port) -c $(programmer) -p $(chip) -U flash:w:$(prog).hex
+
+tagupload:
+	git tag uploaded-$(shell date +%Y%m%d_%H%M%S)
 
 fuses:
 	@echo "== Setting fuses"

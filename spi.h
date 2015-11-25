@@ -19,7 +19,6 @@ void SetChipSelectLow(SpiDevice *const dev);
 void ToggleSerialClock(SpiDevice *const dev);
 void SpiSendByte(SpiDevice *const dev, uint8_t data);
 void SpiWriteBytes(SpiDevice *const dev, int numBytes, uint8_t data[]);
-// SpiDevice *const Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput);
 void Init3WireSpiDevice(int chipSelect, int serialClock, int serialDataInput, SpiDevice *dev);
 
 /*

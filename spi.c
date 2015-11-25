@@ -7,24 +7,31 @@
 #include <util/delay.h>
 
 void SetChipSelectHigh(SpiDevice *const dev) {
-    PORTB |= (1<<dev->chipSelect);
+    // PORTB |= (1<<dev->chipSelect);
+    PORTB |= (1<<PB3);
 }
 
 void SetChipSelectLow(SpiDevice *const dev) {
-    PORTB &= ~(1<<dev->chipSelect);
+    // PORTB &= ~(1<<dev->chipSelect);
+    PORTB &= ~(1<<PB3);
 }
 
 void ToggleSerialClock(SpiDevice *const dev) {
-    PORTB |= (1<<dev->serialClock);
-    PORTB &= ~(1<<dev->serialClock);
+    // PORTB |= (1<<dev->serialClock);
+    // PORTB &= ~(1<<dev->serialClock);
+    PORTB |= (1<<PB2);
+    PORTB &= ~(1<<PB2);
+
 }
 
 void SpiSendByte(SpiDevice *const dev, uint8_t data) {
     for (int bit =7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
-            PORTB |= (1 << dev->serialDataInput);
+            // PORTB |= (1 << dev->serialDataInput);
+            PORTB |= (1 << PB1);
         } else {
-            PORTB &= ~(1 << dev->serialDataInput);
+            // PORTB &= ~(1 << dev->serialDataInput);
+            PORTB &= ~(1 << PB1);
         }
         ToggleSerialClock(dev);
     }
