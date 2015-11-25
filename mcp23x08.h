@@ -13,14 +13,14 @@ typedef struct {
     // SpiDevice* spi;
     SpiDevice spi;
     uint8_t address;
-} mcp23x08Device;
+} mcp23s08Device;
 
-void MCP23S08_Send(mcp23x08Device *const dev, uint8_t opcode, uint8_t registerAddress, uint8_t data);
+void MCP23S08_Send(mcp23s08Device *const dev, uint8_t opcode, uint8_t registerAddress, uint8_t data);
 
-void MCP23S08_GpioWrite(mcp23x08Device *const dev, uint8_t data);
+void MCP23S08_GpioWrite(mcp23s08Device *const dev, uint8_t data);
 
-void MCP23S08_IodirWrite(mcp23x08Device *const dev, uint8_t dirs);
+void MCP23S08_IodirWrite(mcp23s08Device *const dev, uint8_t dirs);
 
-void MCP23S08_Init(int chipSelect, int serialClock, int serialDataInput, int addressA0, int addressA1, mcp23x08Device *dev);
+void MCP23S08_Init(int addressA0, int addressA1, mcp23s08Device *dev);
 
 #endif // __MCP23X08__H__
