@@ -46,7 +46,7 @@ inline void ledPattern_KITT() {
 }
 
 const int numLedPatterns = 2;
-void (*ledPatterns[numLedPatterns]) = { ledPattern_Alternating, ledPattern_KITT }
+void (*ledPatterns[numLedPatterns]) = { ledPattern_Alternating, ledPattern_KITT };
 
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
