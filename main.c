@@ -46,7 +46,7 @@ inline void ledPattern_KITT() {
 }
 
 const int numLedPatterns = 2;
-inline void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KITT };
+void (*ledPatterns[numLedPatterns])();
 
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
@@ -107,6 +107,7 @@ inline void init_pins(void) {
     MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
     // ledsWrite(0x00); // Start them off
     ledsWrite(0xFF);
+    // TODO: add functions to the array
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
