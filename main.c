@@ -81,7 +81,7 @@ inline void init_pins(void) {
 
     // The LEDS
     MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
-    MCP23S08_IodirWrite(&mcp23x08, 0x00); // Set all pins as output pins
+    MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
     // ledsWrite(0x00); // Start them off
     ledsWrite(0xFF);
 
