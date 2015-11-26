@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
+// #include <stdlib.h>
 
 #include "mcp23x08.h"
 
@@ -19,7 +20,7 @@
 
 #define PHOTOCELL_PIN PB4
 
-// #define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
+#define PHOTOCELL_ACTIVATE_THRESHOLD 900 // TODO: make this a diff from ambient?
 #define VIBRATE_PULSE 255
 
 int isTouching = FALSE;
@@ -66,7 +67,8 @@ void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KIT
 void animateLeds(void) {
     // TODO: randomly select and apply an animation
     // (*ledPatterns[RAND_NUM from 0 to numLedPatterns-1])();
-    (*ledPatterns[1])();
+    // int r = rand() % (numLedPatterns-1);
+    (*ledPatterns[0])();
 }
 
 int read_photocell(void) {
@@ -82,18 +84,16 @@ inline void vibrate(int pulse) {
 }
 
 void analyze_and_activate(void) {
-    // if (!isTouching) {
-        // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+        if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         // if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
             // vibrate(VIBRATE_PULSE);
-            // isTouching = TRUE;
+            isTouching = TRUE;
             animateLeds();
-        // } else { // Turn off all LEDs
-            // isTouching = FALSE;
+        } else { // Turn off all LEDs
+            isTouching = FALSE;
             // vibrate(0);
             // ledsWrite(0x00);
-        // }
-    // }
+        }
 }
 
 ISR(WDT_vect) {
