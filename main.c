@@ -1,3 +1,5 @@
+// #define F_CPU 9600000UL
+
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
@@ -20,7 +22,7 @@
 // #define PHOTOCELL_ACTIVATE_THRESHOLD 600 // TODO: make this a diff from ambient?
 #define VIBRATE_PULSE 255
 
-int isAnimated = FALSE;
+int isTouching = FALSE;
 int currentAmbient = 800;
 mcp23s08Device mcp23s08;
 
@@ -29,11 +31,11 @@ inline void ledsWrite(uint8_t leds) {
 }
 
 void ledPattern_Alternating() {
-    for (int i = 0; i < 5; i++) { // Repeat this 5 times
-    // TODO: while (isAnimated) {
-        ledsWrite(0b10101010);
+    for (int i = 0; i < 6; i++) {
+    // TODO: while (isTouching) {
+        ledsWrite(0b01101010);
         _delay_ms(500);
-        ledsWrite(0b11010101);
+        ledsWrite(0b01010101);
         _delay_ms(500);
     }
 }
@@ -42,24 +44,30 @@ void ledPattern_KITT() {
     int i = 0;
     uint8_t pattern = 0b00000000;
     #define numLeds 6
-    for (int i = 0; i < 2; i++) { // Repeat this 5 times
-    // TODO: while (isAnimated) {
+    for (int i = 0; i < 2; i++) {
+    // TODO: while (isTouching) {
         for (; i < numLeds; i++) {
             pattern = (1 << i);
-            ledsWrite((pattern|(1 << 7)));
-            _delay_ms(20);
+            ledsWrite((pattern|(1 << 6)));
+            _delay_ms(100);
         }
         i -= 2;
         for (; i >= 0; i--) {
             pattern = (1 << i);
-            ledsWrite((pattern|(1 << 7)));
-            _delay_ms(20);
+            ledsWrite((pattern|(1 << 6)));
+            _delay_ms(100);
         }
     }
 }
 
 #define numLedPatterns 2
-void (*ledPatterns[numLedPatterns]) = { ledPattern_Alternating, ledPattern_KITT };
+void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KITT };
+
+void animateLeds(void) {
+    // TODO: randomly select and apply an animation
+    // (*ledPatterns[RAND_NUM from 0 to numLedPatterns-1])();
+    (*ledPatterns[1])();
+}
 
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
@@ -73,22 +81,15 @@ inline void vibrate(int pulse) {
     OCR0A = pulse;
 }
 
-void animateLeds(void) {
-    isAnimated = TRUE;
-    // TODO: randomly select and apply an animation
-    // (*ledPatterns[RAND_NUM from 0 to numLedPatterns-1])()
-    ledsWrite(0xFF); // Once the animation ends, turn them all on?
-    // isAnimated = FALSE;
-}
-
 void analyze_and_activate(void) {
-    // if (!isAnimated) {
+    // if (!isTouching) {
         // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         // if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
             // vibrate(VIBRATE_PULSE);
+            // isTouching = TRUE;
             animateLeds();
         // } else { // Turn off all LEDs
-            // isAnimated = FALSE;
+            // isTouching = FALSE;
             // vibrate(0);
             // ledsWrite(0x00);
         // }
