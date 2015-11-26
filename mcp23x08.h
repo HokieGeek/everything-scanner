@@ -10,7 +10,6 @@
 #define MCP23X08_REG_GPIO 0x09
 
 typedef struct {
-    // SpiDevice* spi;
     SpiDevice spi;
     uint8_t address;
 } mcp23s08Device;

@@ -28,7 +28,7 @@ inline void ledsWrite(uint8_t leds) {
     MCP23S08_GpioWrite(&mcp23s08, leds);
 }
 
-inline void ledPattern_Alternating() {
+void ledPattern_Alternating() {
     for (int i = 0; i < 5; i++) { // Repeat this 5 times
     // TODO: while (isAnimated) {
         ledsWrite(0b10101010);
@@ -38,15 +38,28 @@ inline void ledPattern_Alternating() {
     }
 }
 
-inline void ledPattern_KITT() {
-    // TODO
-    ledsWrite(0xFF);
-    _delay_ms(500);
-    ledsWrite(0x00);
+void ledPattern_KITT() {
+    int i = 0;
+    uint8_t pattern = 0b00000000;
+    #define numLeds 6
+    for (int i = 0; i < 2; i++) { // Repeat this 5 times
+    // TODO: while (isAnimated) {
+        for (; i < numLeds; i++) {
+            pattern = (1 << i);
+            ledsWrite((pattern|(1 << 7)));
+            _delay_ms(20);
+        }
+        i -= 2;
+        for (; i >= 0; i--) {
+            pattern = (1 << i);
+            ledsWrite((pattern|(1 << 7)));
+            _delay_ms(20);
+        }
+    }
 }
 
-const int numLedPatterns = 2;
-void (*ledPatterns[numLedPatterns])();
+#define numLedPatterns 2
+void (*ledPatterns[numLedPatterns]) = { ledPattern_Alternating, ledPattern_KITT };
 
 int read_photocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
@@ -69,17 +82,17 @@ void animateLeds(void) {
 }
 
 void analyze_and_activate(void) {
-    if (!isAnimated) {
+    // if (!isAnimated) {
         // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
-        if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
+        // if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
             // vibrate(VIBRATE_PULSE);
             animateLeds();
-        } else { // Turn off all LEDs
+        // } else { // Turn off all LEDs
             // isAnimated = FALSE;
             // vibrate(0);
             // ledsWrite(0x00);
-        }
-    }
+        // }
+    // }
 }
 
 ISR(WDT_vect) {
@@ -88,10 +101,14 @@ ISR(WDT_vect) {
     ADCSRA &= ~(1 << ADEN);  // Disable ADC
 }
 
-void init_mcp23s08() {
+inline void init_mcp23s08() {
     mcp23s08.spi.chipSelect = LEDS_PIN_CHIPSELECT;
     mcp23s08.spi.serialClock = LEDS_PIN_SERIALCLOCK;
     mcp23s08.spi.serialDataInput = LEDS_PIN_DATA;
+
+    MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
+    MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
+    ledsWrite(0x00); // Start them off
 }
 
 inline void init_pins(void) {
@@ -103,11 +120,7 @@ inline void init_pins(void) {
     DDRB |= (1 << VIBRATOR_PIN);
 
     // The LEDS
-    MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
-    MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
-    // ledsWrite(0x00); // Start them off
-    ledsWrite(0xFF);
-    // TODO: add functions to the array
+    init_mcp23s08();
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
