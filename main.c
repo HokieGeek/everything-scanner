@@ -3,7 +3,6 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
-// #include <stdlib.h>
 
 #include "mcp23x08.h"
 
@@ -20,10 +19,12 @@
 
 #define PHOTOCELL_PIN PB4
 
-#define PHOTOCELL_ACTIVATE_THRESHOLD 900 // TODO: make this a diff from ambient?
+#define PHOTOCELL_ACTIVATE_THRESHOLD 300 // TODO: make this a diff from ambient?
 #define VIBRATE_PULSE 255
 
-int isTouching = FALSE;
+#define numLeds 6
+
+// int isTouching = FALSE;
 int currentAmbient = 800;
 mcp23s08Device mcp23s08;
 
@@ -32,43 +33,58 @@ inline void ledsWrite(uint8_t leds) {
 }
 
 void ledPattern_Alternating() {
-    for (int i = 0; i < 6; i++) {
-    // TODO: while (isTouching) {
-        ledsWrite(0b01101010);
-        _delay_ms(500);
-        ledsWrite(0b01010101);
-        _delay_ms(500);
-    }
+    ledsWrite(0b01101010);
+    _delay_ms(500);
+    ledsWrite(0b01010101);
+    _delay_ms(500);
 }
 
 void ledPattern_KITT() {
     int i = 0;
-    uint8_t pattern = 0b00000000;
-    #define numLeds 6
-    for (int i = 0; i < 2; i++) {
-    // TODO: while (isTouching) {
-        for (; i < numLeds; i++) {
-            pattern = (1 << i);
-            ledsWrite((pattern|(1 << 6)));
-            _delay_ms(100);
-        }
-        i -= 2;
-        for (; i >= 0; i--) {
-            pattern = (1 << i);
-            ledsWrite((pattern|(1 << 6)));
-            _delay_ms(100);
-        }
+    uint8_t pattern = 0;
+    for (; i < numLeds; i++) {
+        pattern = (1 << i);
+        ledsWrite((pattern|(1 << numLeds)));
+        _delay_ms(100);
+    }
+    _delay_ms(50);
+    i -= 2;
+    for (; i >= 0; i--) {
+        pattern = (1 << i);
+        ledsWrite((pattern|(1 << numLeds)));
+        _delay_ms(100);
     }
 }
 
-#define numLedPatterns 2
-void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KITT };
+void ledPattern_LandingStrip() {
+    int i = 0;
+    uint8_t pattern = 0;
+    for (; i < numLeds; i++) {
+        pattern |= (1 << i);
+        ledsWrite((pattern|(1 << numLeds)));
+        _delay_ms(200);
+    }
+    ledsWrite(0b01000000);
+    _delay_ms(200);
+}
+
+void ledPattern_Blinky() {
+    ledsWrite(0b01111111);
+    _delay_ms(500);
+    ledsWrite(0b01000000);
+    _delay_ms(500);
+}
+
+#define numLedPatterns 4
+void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KITT,
+                                          ledPattern_LandingStrip, ledPattern_Blinky };
 
 void animateLeds(void) {
     // TODO: randomly select and apply an animation
-    // (*ledPatterns[RAND_NUM from 0 to numLedPatterns-1])();
-    // int r = rand() % (numLedPatterns-1);
-    (*ledPatterns[0])();
+    // for (int i = 0; i < 2; i++) {
+    while (isTouching()) {
+        (*ledPatterns[3])();
+    }
 }
 
 int read_photocell(void) {
@@ -83,16 +99,25 @@ inline void vibrate(int pulse) {
     OCR0A = pulse;
 }
 
+inline int isTouching() {
+    if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 void analyze_and_activate(void) {
-        if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+        // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+        if (isTouching()) {
         // if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
             // vibrate(VIBRATE_PULSE);
-            isTouching = TRUE;
+            // isTouching = TRUE;
             animateLeds();
         } else { // Turn off all LEDs
-            isTouching = FALSE;
+            // isTouching = FALSE;
             // vibrate(0);
-            // ledsWrite(0x00);
+            ledsWrite(0x00);
         }
 }
 
