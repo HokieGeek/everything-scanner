@@ -15,7 +15,6 @@ CFLAGS += -Wall -Wstrict-prototypes
 
 LDFLAGS  = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += -Wl,--gc-sections
-# LDFLAGS += -Wl,--relax
 
 DEPS = spi.h mcp23x08.h
 OBJ = $(prog).o $(DEPS:.h=.o)

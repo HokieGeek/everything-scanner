@@ -1,8 +1,6 @@
 #ifndef __MCP23X08__H__
 #define __MCP23X08__H__
 
-#include <avr/interrupt.h>
-
 #include "spi.h"
 
 #define MCP23X08_SLAVE_BASE_ADDRESS (1 << 6)

@@ -1,21 +1,19 @@
 #include "spi.h"
 
-#include <stdlib.h>
-
 #include <avr/io.h>
-#include <avr/interrupt.h>
+// #include <avr/interrupt.h>
 
-void SetChipSelectHigh(SpiDevice *const dev) {
+inline void SetChipSelectHigh(SpiDevice *const dev) {
     PORTB |= (1<<dev->chipSelect);
     // PORTB |= (1<<PB3);
 }
 
-void SetChipSelectLow(SpiDevice *const dev) {
+inline void SetChipSelectLow(SpiDevice *const dev) {
     PORTB &= ~(1<<dev->chipSelect);
     // PORTB &= ~(1<<PB3);
 }
 
-void ToggleSerialClock(SpiDevice *const dev) {
+inline void ToggleSerialClock(SpiDevice *const dev) {
     PORTB |= (1<<dev->serialClock);
     PORTB &= ~(1<<dev->serialClock);
     // PORTB |= (1<<PB2);
@@ -24,7 +22,7 @@ void ToggleSerialClock(SpiDevice *const dev) {
 }
 
 void SpiSendByte(SpiDevice *const dev, uint8_t data) {
-    for (int bit =7; bit >= 0; --bit) {
+    for (int bit = 7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
             PORTB |= (1 << dev->serialDataInput);
             // PORTB |= (1 << PB1);
