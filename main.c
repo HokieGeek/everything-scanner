@@ -10,20 +10,19 @@
 #define TRUE !(FALSE)
 
 #define VIBRATOR_PIN PB0
+#define VIBRATE_PULSE 255
 
 #define LEDS_PIN_DATA PB1
 #define LEDS_PIN_SERIALCLOCK PB2
 #define LEDS_PIN_CHIPSELECT PB3
 #define MCP23X08_SLAVE_ADDRESS_A0 0
 #define MCP23X08_SLAVE_ADDRESS_A1 0
+#define NUM_LEDS 6
+#define NUM_LED_PATTERNS 4
+#define ANIMATION_REPETITION 5
 
 #define PHOTOCELL_PIN PB4
-
-#define PHOTOCELL_ACTIVATE_THRESHOLD 200 // TODO: make this a diff from ambient?
-#define VIBRATE_PULSE 255
-
-#define NUM_LEDS 6
-#define ANIMATION_REPETITION 8
+#define PHOTOCELL_ACTIVATE_THRESHOLD 500 // TODO: make this a diff from ambient?
 
 int isAnimating = FALSE;
 int currentAmbient = 800;
@@ -42,17 +41,13 @@ void ledPattern_Alternating() {
 
 void ledPattern_KITT() {
     int i = 0;
-    uint8_t pattern = 0;
     for (; i < NUM_LEDS; i++) {
-        pattern = (1 << i);
-        ledsWrite((pattern|(1 << NUM_LEDS)));
+        ledsWrite(((1 << i)|(1 << NUM_LEDS)));
         _delay_ms(100);
     }
-    _delay_ms(50);
     i -= 2;
     for (; i >= 0; i--) {
-        pattern = (1 << i);
-        ledsWrite((pattern|(1 << NUM_LEDS)));
+        ledsWrite(((1 << i)|(1 << NUM_LEDS)));
         _delay_ms(100);
     }
 }
@@ -63,10 +58,10 @@ void ledPattern_LandingStrip() {
     for (; i < NUM_LEDS; i++) {
         pattern |= (1 << i);
         ledsWrite((pattern|(1 << NUM_LEDS)));
-        _delay_ms(200);
+        _delay_ms(150);
     }
     ledsWrite(0b01000000);
-    _delay_ms(200);
+    _delay_ms(150);
 }
 
 void ledPattern_Blinky() {
@@ -75,10 +70,6 @@ void ledPattern_Blinky() {
     ledsWrite(0b01000000);
     _delay_ms(500);
 }
-
-#define NUM_LED_PATTERNS 4
-void (*ledPatterns[NUM_LED_PATTERNS])() = { ledPattern_Alternating, ledPattern_KITT,
-                                            ledPattern_LandingStrip, ledPattern_Blinky };
 
 int readPhotocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
@@ -89,18 +80,23 @@ int readPhotocell(void) {
 }
 
 void animateLeds(void) {
-    // TODO: randomly select and apply an animation
-    // int rand = 3;
     int rand = readPhotocell() % (NUM_LED_PATTERNS-1);
     isAnimating = TRUE;
-    // for (int i = 0; i < ANIMATION_REPETITION && isAnimating; i++) {
-        (*ledPatterns[rand])();
-    // }
+    for (int i = 0; i < ANIMATION_REPETITION && isAnimating; i++) {
+        switch (rand) {
+        case 0: ledPattern_Alternating(); break;
+        case 1: ledPattern_KITT(); break;
+        case 2: ledPattern_LandingStrip(); break;
+        case 3: ledPattern_Blinky(); break;
+        default: break;
+        }
+    }
 }
 
 inline void vibrate(int pulse, int duration) {
-    // TODO: only want to do this for a small amount of time and then stop
     OCR0A = pulse;
+    _delay_ms(duration);
+    OCR0A = 0x00;
 }
 
 inline int isTouching() {
@@ -114,13 +110,13 @@ inline int isTouching() {
 
 void analyze_and_activate(void) {
     if (isTouching()) {
-        // if (isAnimating) {
-            // isAnimating = FALSE;
-        // }
-        // vibrate(VIBRATE_PULSE, __duration__);
+        if (isAnimating) {
+            isAnimating = FALSE;
+        }
+        vibrate(VIBRATE_PULSE, 500);
         animateLeds();
     } else { // Turn off all LEDs
-    //     isAnimating = FALSE;
+        isAnimating = FALSE;
         ledsWrite(0x00);
     }
 }
@@ -172,10 +168,6 @@ int __attribute__((OS_main)) main(void) {
     ADCSRA &= ~(1 << ADEN);  // Disable ADC (to save power)
 
     currentAmbient = readPhotocell();
-
-    // vibrate(255, 0);
-    // _delay_ms(1000);
-    // vibrate(0, 0);
 
     for (;;) {
         sleep_mode();
