@@ -19,12 +19,13 @@
 
 #define PHOTOCELL_PIN PB4
 
-#define PHOTOCELL_ACTIVATE_THRESHOLD 300 // TODO: make this a diff from ambient?
+#define PHOTOCELL_ACTIVATE_THRESHOLD 200 // TODO: make this a diff from ambient?
 #define VIBRATE_PULSE 255
 
-#define numLeds 6
+#define NUM_LEDS 6
+#define ANIMATION_REPETITION 8
 
-// int isTouching = FALSE;
+int isAnimating = FALSE;
 int currentAmbient = 800;
 mcp23s08Device mcp23s08;
 
@@ -42,16 +43,16 @@ void ledPattern_Alternating() {
 void ledPattern_KITT() {
     int i = 0;
     uint8_t pattern = 0;
-    for (; i < numLeds; i++) {
+    for (; i < NUM_LEDS; i++) {
         pattern = (1 << i);
-        ledsWrite((pattern|(1 << numLeds)));
+        ledsWrite((pattern|(1 << NUM_LEDS)));
         _delay_ms(100);
     }
     _delay_ms(50);
     i -= 2;
     for (; i >= 0; i--) {
         pattern = (1 << i);
-        ledsWrite((pattern|(1 << numLeds)));
+        ledsWrite((pattern|(1 << NUM_LEDS)));
         _delay_ms(100);
     }
 }
@@ -59,9 +60,9 @@ void ledPattern_KITT() {
 void ledPattern_LandingStrip() {
     int i = 0;
     uint8_t pattern = 0;
-    for (; i < numLeds; i++) {
+    for (; i < NUM_LEDS; i++) {
         pattern |= (1 << i);
-        ledsWrite((pattern|(1 << numLeds)));
+        ledsWrite((pattern|(1 << NUM_LEDS)));
         _delay_ms(200);
     }
     ledsWrite(0b01000000);
@@ -75,19 +76,11 @@ void ledPattern_Blinky() {
     _delay_ms(500);
 }
 
-#define numLedPatterns 4
-void (*ledPatterns[numLedPatterns])() = { ledPattern_Alternating, ledPattern_KITT,
-                                          ledPattern_LandingStrip, ledPattern_Blinky };
+#define NUM_LED_PATTERNS 4
+void (*ledPatterns[NUM_LED_PATTERNS])() = { ledPattern_Alternating, ledPattern_KITT,
+                                            ledPattern_LandingStrip, ledPattern_Blinky };
 
-void animateLeds(void) {
-    // TODO: randomly select and apply an animation
-    // for (int i = 0; i < 2; i++) {
-    while (isTouching()) {
-        (*ledPatterns[3])();
-    }
-}
-
-int read_photocell(void) {
+int readPhotocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
 
     while (ADCSRA & (1 << ADSC)); // Wait for conversion
@@ -95,12 +88,24 @@ int read_photocell(void) {
     return ADC;
 }
 
-inline void vibrate(int pulse) {
+void animateLeds(void) {
+    // TODO: randomly select and apply an animation
+    // int rand = 3;
+    int rand = readPhotocell() % (NUM_LED_PATTERNS-1);
+    isAnimating = TRUE;
+    // for (int i = 0; i < ANIMATION_REPETITION && isAnimating; i++) {
+        (*ledPatterns[rand])();
+    // }
+}
+
+inline void vibrate(int pulse, int duration) {
+    // TODO: only want to do this for a small amount of time and then stop
     OCR0A = pulse;
 }
 
 inline int isTouching() {
-    if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
+    // TODO: better sampling
+    if (readPhotocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         return TRUE;
     } else {
         return FALSE;
@@ -108,33 +113,22 @@ inline int isTouching() {
 }
 
 void analyze_and_activate(void) {
-        // if (read_photocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
-        if (isTouching()) {
-        // if (read_photocell() < currentAmbient) { // TODO: if < 5% of ambient
-            // vibrate(VIBRATE_PULSE);
-            // isTouching = TRUE;
-            animateLeds();
-        } else { // Turn off all LEDs
-            // isTouching = FALSE;
-            // vibrate(0);
-            ledsWrite(0x00);
-        }
+    if (isTouching()) {
+        // if (isAnimating) {
+            // isAnimating = FALSE;
+        // }
+        // vibrate(VIBRATE_PULSE, __duration__);
+        animateLeds();
+    } else { // Turn off all LEDs
+    //     isAnimating = FALSE;
+        ledsWrite(0x00);
+    }
 }
 
 ISR(WDT_vect) {
     ADCSRA |= (1 << ADEN);  // Enable ADC
     analyze_and_activate();
     ADCSRA &= ~(1 << ADEN);  // Disable ADC
-}
-
-inline void init_mcp23s08() {
-    mcp23s08.spi.chipSelect = LEDS_PIN_CHIPSELECT;
-    mcp23s08.spi.serialClock = LEDS_PIN_SERIALCLOCK;
-    mcp23s08.spi.serialDataInput = LEDS_PIN_DATA;
-
-    MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
-    MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
-    ledsWrite(0x00); // Start them off
 }
 
 inline void init_pins(void) {
@@ -145,8 +139,14 @@ inline void init_pins(void) {
 
     DDRB |= (1 << VIBRATOR_PIN);
 
-    // The LEDS
-    init_mcp23s08();
+    // LEDS
+    mcp23s08.spi.chipSelect = LEDS_PIN_CHIPSELECT;
+    mcp23s08.spi.serialClock = LEDS_PIN_SERIALCLOCK;
+    mcp23s08.spi.serialDataInput = LEDS_PIN_DATA;
+
+    MCP23S08_Init(MCP23X08_SLAVE_ADDRESS_A0, MCP23X08_SLAVE_ADDRESS_A1, &mcp23s08);
+    MCP23S08_IodirWrite(&mcp23s08, 0x00); // Set all pins as output pins
+    ledsWrite(0x00); // Start them off
 
     // The photocell ADC. Enable ADC2 / PB4 as an ADC pin
     ADMUX |= (0 << REFS0) | (1 << MUX1) | (0 << MUX0);
@@ -171,7 +171,11 @@ int __attribute__((OS_main)) main(void) {
 
     ADCSRA &= ~(1 << ADEN);  // Disable ADC (to save power)
 
-    currentAmbient = read_photocell();
+    currentAmbient = readPhotocell();
+
+    // vibrate(255, 0);
+    // _delay_ms(1000);
+    // vibrate(0, 0);
 
     for (;;) {
         sleep_mode();
