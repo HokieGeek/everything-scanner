@@ -18,7 +18,7 @@ void MCP23S08_IodirWrite(mcp23s08Device *const dev, uint8_t dirs) {
     MCP23S08_Send(dev, dev->address, MCP23X08_REG_IODIR, dirs);
 }
 
-void MCP23S08_Init(int addressA0, int addressA1, mcp23s08Device *dev) {
+void MCP23S08_Init(uint8_t addressA0, uint8_t addressA1, mcp23s08Device *dev) {
     Init3WireSpiDevice(&dev->spi);
 
     dev->address = (MCP23X08_SLAVE_BASE_ADDRESS|(addressA1 << 2)|(addressA0 << 1));

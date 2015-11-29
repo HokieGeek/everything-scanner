@@ -24,23 +24,23 @@
 #define PHOTOCELL_PIN PB4
 #define PHOTOCELL_ACTIVATE_THRESHOLD 500 // TODO: make this a diff from ambient?
 
-int isAnimating = FALSE;
-int currentAmbient = 800;
+uint8_t isAnimating = FALSE;
+uint16_t currentAmbient = 800;
 mcp23s08Device mcp23s08;
 
 inline void ledsWrite(uint8_t leds) {
     MCP23S08_GpioWrite(&mcp23s08, leds);
 }
 
-void ledPattern_Alternating() {
+void ledPattern_Alternating(void) {
     ledsWrite(0b01101010);
     _delay_ms(500);
     ledsWrite(0b01010101);
     _delay_ms(500);
 }
 
-void ledPattern_KITT() {
-    int i = 0;
+void ledPattern_KITT(void) {
+    uint8_t i = 0;
     for (; i < NUM_LEDS; i++) {
         ledsWrite(((1 << i)|(1 << NUM_LEDS)));
         _delay_ms(100);
@@ -52,10 +52,9 @@ void ledPattern_KITT() {
     }
 }
 
-void ledPattern_LandingStrip() {
-    int i = 0;
+void ledPattern_LandingStrip(void) {
     uint8_t pattern = 0;
-    for (; i < NUM_LEDS; i++) {
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
         pattern |= (1 << i);
         ledsWrite((pattern|(1 << NUM_LEDS)));
         _delay_ms(150);
@@ -64,14 +63,14 @@ void ledPattern_LandingStrip() {
     _delay_ms(150);
 }
 
-void ledPattern_Blinky() {
+void ledPattern_Blinky(void) {
     ledsWrite(0b01111111);
     _delay_ms(500);
     ledsWrite(0b01000000);
     _delay_ms(500);
 }
 
-int readPhotocell(void) {
+uint16_t readPhotocell(void) {
     ADCSRA |= (1 << ADSC); // Start the conversion
 
     while (ADCSRA & (1 << ADSC)); // Wait for conversion
@@ -80,9 +79,9 @@ int readPhotocell(void) {
 }
 
 void animateLeds(void) {
-    int rand = readPhotocell() % (NUM_LED_PATTERNS-1);
+    uint16_t rand = readPhotocell() % (NUM_LED_PATTERNS-1);
     isAnimating = TRUE;
-    for (int i = 0; i < ANIMATION_REPETITION && isAnimating; i++) {
+    for (uint8_t i = 0; i < ANIMATION_REPETITION && isAnimating; i++) {
         switch (rand) {
         case 0: ledPattern_Alternating(); break;
         case 1: ledPattern_KITT(); break;
@@ -93,13 +92,13 @@ void animateLeds(void) {
     }
 }
 
-inline void vibrate(int pulse, int duration) {
+inline void vibrate(uint16_t pulse) {
     OCR0A = pulse;
-    _delay_ms(duration);
+    _delay_ms(500);
     OCR0A = 0x00;
 }
 
-inline int isTouching() {
+inline uint8_t isTouching(void) {
     // TODO: better sampling
     if (readPhotocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         return TRUE;
@@ -113,7 +112,7 @@ void analyze_and_activate(void) {
         if (isAnimating) {
             isAnimating = FALSE;
         }
-        vibrate(VIBRATE_PULSE, 500);
+        vibrate(VIBRATE_PULSE);
         animateLeds();
     } else { // Turn off all LEDs
         isAnimating = FALSE;

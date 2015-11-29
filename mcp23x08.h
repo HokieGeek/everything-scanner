@@ -18,6 +18,6 @@ void MCP23S08_GpioWrite(mcp23s08Device *const dev, uint8_t data);
 
 void MCP23S08_IodirWrite(mcp23s08Device *const dev, uint8_t dirs);
 
-void MCP23S08_Init(int addressA0, int addressA1, mcp23s08Device *dev);
+void MCP23S08_Init(uint8_t addressA0, uint8_t addressA1, mcp23s08Device *dev);
 
 #endif // __MCP23X08__H__
