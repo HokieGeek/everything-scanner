@@ -16,7 +16,7 @@ inline void ToggleSerialClock(SpiDevice *const dev) {
 }
 
 void SpiSendByte(SpiDevice *const dev, uint8_t data) {
-    for (uint8_t bit = 7; bit >= 0; --bit) {
+    for (int bit = 7; bit >= 0; --bit) {
         if ((data & (1 << bit))) {
             PORTB |= (1 << dev->serialDataInput);
         } else {

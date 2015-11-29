@@ -40,7 +40,7 @@ void ledPattern_Alternating(void) {
 }
 
 void ledPattern_KITT(void) {
-    uint8_t i = 0;
+    int i = 0;
     for (; i < NUM_LEDS; i++) {
         ledsWrite(((1 << i)|(1 << NUM_LEDS)));
         _delay_ms(100);
@@ -98,7 +98,7 @@ inline void vibrate(uint16_t pulse) {
     OCR0A = 0x00;
 }
 
-inline uint8_t isTouching(void) {
+inline int isTouching(void) {
     // TODO: better sampling
     if (readPhotocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         return TRUE;
