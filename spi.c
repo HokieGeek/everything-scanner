@@ -18,10 +18,10 @@ inline void ToggleSerialClock(SpiDevice *const dev) {
 uint8_t SpiSendByte(SpiDevice *const dev, uint8_t data) {
 #if defined(__AVR_ATtiny13__)
     for (int bit = 7; bit >= 0; --bit) { // MSB first
-        if ((data & (1 << bit))) {
-            PORTB |= (1 << dev->serialDataInput);
+        if ((data & (1<<bit))) {
+            PORTB |= (1<<dev->serialDataInput);
         } else {
-            PORTB &= ~(1 << dev->serialDataInput);
+            PORTB &= ~(1<<dev->serialDataInput);
         }
         ToggleSerialClock(dev);
     }
