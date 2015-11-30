@@ -22,7 +22,7 @@
 #define ANIMATION_REPETITION 5
 
 #define PHOTOCELL_PIN PB4
-#define PHOTOCELL_ACTIVATE_THRESHOLD 500 // TODO: make this a diff from ambient?
+#define PHOTOCELL_ACTIVATE_THRESHOLD 330 // TODO: make this a diff from ambient?
 
 uint8_t isAnimating = FALSE;
 uint16_t currentAmbient = 800;
@@ -71,11 +71,16 @@ void ledPattern_Blinky(void) {
 }
 
 uint16_t readPhotocell(void) {
-    ADCSRA |= (1 << ADSC); // Start the conversion
+    uint16_t photocellVal = 0;
+    for (uint8_t i = 0; i < 8; i++) {
+        ADCSRA |= (1 << ADSC); // Start the conversion
 
-    while (ADCSRA & (1 << ADSC)); // Wait for conversion
+        while (ADCSRA & (1 << ADSC)); // Wait for conversion
 
-    return ADC;
+        photocellVal += ADC;
+    }
+
+    return (uint16_t)(photocellVal / 8);
 }
 
 void animateLeds(void) {
@@ -99,7 +104,7 @@ inline void vibrate(uint16_t pulse) {
 }
 
 inline int isTouching(void) {
-    // TODO: better sampling
+    // TODO: better way to determine this?
     if (readPhotocell() < PHOTOCELL_ACTIVATE_THRESHOLD) {
         return TRUE;
     } else {
@@ -109,13 +114,13 @@ inline int isTouching(void) {
 
 void analyze_and_activate(void) {
     if (isTouching()) {
-        if (isAnimating) {
-            isAnimating = FALSE;
-        }
+        // if (isAnimating) {
+        //     isAnimating = FALSE;
+        // }
         vibrate(VIBRATE_PULSE);
         animateLeds();
     } else { // Turn off all LEDs
-        isAnimating = FALSE;
+        // isAnimating = FALSE;
         ledsWrite(0x00);
     }
 }
@@ -152,8 +157,7 @@ inline void init_interrupts(void) {
     // See table 8-2 on datasheet
     WDTCR |= (1 << WDP2) | (1 << WDP0); // Sleep for ~30s
     // WDTCR |= (1 << WDP2); // Sleep for ~15s
-    WDTCR |= (1 << WDTIE) | (0 << WDE); // Enable watchdog timer
-    WDTCR |= (0 << WDE);
+    WDTCR |= (1 << WDTIE); // Enable watchdog timer
 
     sei();
 
