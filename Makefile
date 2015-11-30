@@ -42,7 +42,7 @@ $(prog).elf: $(prog).hex
 	avr-objcopy -O ihex -R .eeprom -R .fuse -R .lock -R .signature $@ $^
 
 $(prog).hex: $(OBJ)
-	echo "== Creating hex" && \
+	@echo "== Creating hex" && \
 	$(CC) -mmcu=$(chip) -I. -mdeb -gdwarf-2 $(cpu_freq) -Os $(CFLAGS) -Wa,-adhlns=$<  -std=gnu99 -MMD -MP -MF .dep/$(prog).elf.d $^ --output $(prog).elf $(LDFLAGS) -lm
 
 upload: all
@@ -64,6 +64,10 @@ fuses-default:
 size:
 	@echo "Size of binary: "
 	avr-size $(prog).hex
+
+photocelltest:
+	@cd lcdphotocell
+	arduino --upload --port /dev/ftdibasic3v3 --board arduino:avr:pro lcdphotocell/lcdphotocell.ino
 
 clean:
 	rm -rf *.{eep,elf,hex,lss,lst,map,o,sym}
