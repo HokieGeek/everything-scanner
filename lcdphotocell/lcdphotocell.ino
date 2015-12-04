@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
+#include <avr/interrupt.h>
 
 // Software SPI (slower updates, more flexible pin options):
 // pin 7 - Serial clock out (SCLK)
@@ -20,6 +21,15 @@ void setup() {
   display.setContrast(38);
   display.setTextSize(2);
   display.setTextColor(BLACK);
+  
+  // See table 8-2 on datasheet
+  WDTCR |= (1 << WDP2) | (1 << WDP0); // Sleep for ~30s
+  // WDTCR |= (1 << WDP2); // Sleep for ~15s
+  WDTCR |= (1 << WDTIE); // Enable watchdog timer
+
+  sei();
+
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 }
 
 int val() {
@@ -45,8 +55,7 @@ void displayVal(int v, int d) {
   }
 }
 
-// the loop routine runs over and over again forever:
-void loop() {
+void doit() {
   int v = val();
   int d = v - last; // abs(last - v);
   last = v;
@@ -54,4 +63,17 @@ void loop() {
   Serial.print(", ");
   Serial.println(d); 
   displayVal(v, d);
+}
+
+ISR(WDT_vect) {
+    ADCSRA |= (1 << ADEN);  // Enable ADC
+    doit();
+    ADCSRA &= ~(1 << ADEN);  // Disable ADC
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  ADCSRA &= ~(1 << ADEN); // Disable ADC (to save power)
+  sleep_mode();
+  // doit();
 }
