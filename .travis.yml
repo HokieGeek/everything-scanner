@@ -19,4 +19,4 @@ env: DISPLAY=:1.0
 script: 
   - make
   - make size
-  - cd lcdphotocell && arduino --verify --board arduino:avr:pro lcdphotocell/lcdphotocell.ino
+  - arduino --verify --board arduino:avr:pro lcdphotocell/lcdphotocell.ino
